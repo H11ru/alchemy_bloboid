@@ -1,10 +1,12 @@
 import pygame
 import random
 import betterfont
+import math
 
 pygame.init()
 WIDTH, HEIGHT = 1200, 900
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+window = pygame.display.set_mode((WIDTH, HEIGHT))
+screen = pygame.Surface((WIDTH, HEIGHT)).convert() # convert will turn it into a format that is faster to blit
 pygame.display.set_caption("i dont know yet")
 
 # Define areas
@@ -36,7 +38,7 @@ drag_offset = (0, 0)
 # Garden
 plants = []
 plant_growth_timer = 15
-plant_max = 8
+plant_max = 12
 plant_types = ['coilgrass', 'nightbloom']
 
 # Recipes
@@ -115,17 +117,35 @@ ASSETS_MINE = {
 ASSETS["error"].fill((255, 0, 255))
 pygame.draw.rect(ASSETS["error"], (0, 0, 0), (0, 0, 30, 30))
 pygame.draw.rect(ASSETS["error"], (0, 0, 0), (30, 30, 30, 30))
+frame = 0
 
+def foggy(y, x, frame):
+    # fun shader. oscillates between (90,90,90) and (120, 120, 120) based on position and framea nd sine wave
+    base = 115 + 15 * math.sin((frame + x*5 + y*10) * 0.1)
+    return (base, base, base)
+magicfilm = pygame.Surface((MINE_RECT.width, MINE_RECT.height), pygame.SRCALPHA)
 def draw_mine():
+    global frame
+    for y in range(MINE_SIZE):
+        for x in range(MINE_SIZE):
+            rect = pygame.Rect(MINE_RECT.x + x*MINE_CELL_SIZE + TINY, MINE_RECT.y + y*MINE_CELL_SIZE + TINY, MINE_CELL_SIZE, MINE_CELL_SIZE)
+            if not mine_fog[y][x]:
+                mat = mine_grid[y][x]
+                screen.blit(pygame.transform.smoothscale(ASSETS_MINE.get(mat, ASSETS_MINE["error"]), (MINE_CELL_SIZE, MINE_CELL_SIZE)), rect.topleft)
+    # magic film
+    global magicfilm
+    magicfilm.fill((0, 0, 0, 90))
+    if pickswing > 0:
+        screen.blit(magicfilm, MINE_RECT.topleft)
+
     for y in range(MINE_SIZE):
         for x in range(MINE_SIZE):
             rect = pygame.Rect(MINE_RECT.x + x*MINE_CELL_SIZE + TINY, MINE_RECT.y + y*MINE_CELL_SIZE + TINY, MINE_CELL_SIZE, MINE_CELL_SIZE)
             if mine_fog[y][x]:
-                pygame.draw.rect(screen, (60, 60, 60), rect)
-            else:
-                mat = mine_grid[y][x]
-                screen.blit(pygame.transform.smoothscale(ASSETS_MINE.get(mat, ASSETS_MINE["error"]), (MINE_CELL_SIZE, MINE_CELL_SIZE)), rect.topleft)
+                pygame.draw.rect(screen, foggy(y, x, frame), rect)
             pygame.draw.rect(screen, (30,30,30), rect, 1)
+
+
     # Regen button
     btn_rect = pygame.Rect(MINE_RECT.x+9, MINE_RECT.y+7, 100, 30)
     pygame.draw.rect(screen, (180,180,0), btn_rect)
@@ -170,7 +190,7 @@ def draw_garden():
     for plant in plants:
         # use the plant type texture
         screen.blit(ASSETS.get(plant['type'], ASSETS["error"]), plant['rect'].topleft)
-        pygame.draw.rect(screen, (0,150,0), plant['rect'], 2)
+        #pygame.draw.rect(screen, (0,150,0), plant['rect'], 2)
 
 def draw_booms():
     for boom in boom_texts:
@@ -198,6 +218,8 @@ running = True
 pickswing = 0
 mouse_still_for = 0
 while running:
+    dt = clock.tick(60)
+    frame += 1
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -239,14 +261,22 @@ while running:
                         result = recipes[key]
                         inventory[result] = inventory.get(result, 0) + 1
                         craft_slots = [None, None]
+                        for _ in range(15):
+                            boom_texts.append({
+                                'txt': "Yay!",
+                                'pos': [combine_btn.x+random.randint(-30,100), combine_btn.y+random.randint(-30,30)],
+                                'vel': [random.uniform(-3,3), random.uniform(-5,1)],
+                                'color': (137, 235, 255), # light blue
+                                'life': 120
+                            })
                     else:
                         for _ in range(45):
                             boom_texts.append({
                                 'txt': "BOOM!",
                                 'pos': [combine_btn.x+random.randint(-30,100), combine_btn.y+random.randint(-30,30)],
-                                'vel': [random.uniform(-6,6), random.uniform(-8,4)],
+                                'vel': [random.uniform(-16,16), random.uniform(-18,9)],
                                 'color': fire(),
-                                'life': 240
+                                'life': 60
                             })
                         craft_slots = [None, None]
             # Garden
@@ -277,10 +307,13 @@ while running:
 
     mouse_still_for += 1
 
-    plant_growth_timer -= 0.05
+    plant_growth_timer -= 0.15
     if plant_growth_timer <= 0 and len(plants) < plant_max:
         px = random.randint(GARDEN_RECT.x + 20, GARDEN_RECT.x + GARDEN_RECT.width - 80)
-        py = random.randint(GARDEN_RECT.y + 20, GARDEN_RECT.y + GARDEN_RECT.height - 80)
+        py = random.randint(
+            GARDEN_RECT.y + GARDEN_RECT.height // 2 + 20,
+            GARDEN_RECT.y + GARDEN_RECT.height - 80
+        )
         plants.append({'rect': pygame.Rect(px, py, 60, 60), 'type': random.choice(plant_types)})
         plant_growth_timer = random.randint(30, 180)
 
@@ -293,6 +326,9 @@ while running:
     regen_btn = draw_mine()
     draw_inventory()
     slot_rects, combine_btn = draw_crafting()
+    pygame.draw.rect(screen, (171, 205, 239), (GARDEN_RECT.x, GARDEN_RECT.y, GARDEN_RECT.width, GARDEN_RECT.height))
+    pygame.draw.rect(screen, (71, 205, 91), (GARDEN_RECT.x, GARDEN_RECT.y + GARDEN_RECT.height // 2, GARDEN_RECT.width, GARDEN_RECT.height // 2))
+    pygame.draw.line(screen, (0,0,0), (GARDEN_RECT.x, GARDEN_RECT.y + GARDEN_RECT.height // 2), (GARDEN_RECT.x + GARDEN_RECT.width, GARDEN_RECT.y + GARDEN_RECT.height // 2), 3)
     draw_garden()
     draw_booms()
     # Draw thick black boundaries for each sector
@@ -345,6 +381,8 @@ while running:
                                 screen.blit(FONT.render(line), (tooltip_left + 10 + go_left, tooltip_top + i*30 + 10))
                             break
                         inv_x += 80
+
+    window.blit(screen, (0,0))
 
     pygame.display.flip()
     clock.tick(60)
