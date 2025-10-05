@@ -93,6 +93,9 @@ class Font:
                     surf.blit(self.font.render(text, True, self.border_color), (dx+pad, dy+pad))
         # Draw main text
         surf.blit(base, (pad, pad))
+        surf.blit(base, (pad+1, pad))
+        surf.blit(base, (pad, pad+1))
+        surf.blit(base, (pad+1, pad+1))
         return surf
 
     def _wrap_text(self, text):

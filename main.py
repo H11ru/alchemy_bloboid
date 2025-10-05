@@ -5,7 +5,7 @@ import betterfont
 pygame.init()
 WIDTH, HEIGHT = 1200, 900
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Alchemy Game")
+pygame.display.set_caption("i dont know yet")
 
 # Define areas
 MINE_RECT = pygame.Rect(0, 0, 600, 600)
@@ -13,9 +13,10 @@ INVENTORY_RECT = pygame.Rect(WIDTH // 2, 0, WIDTH // 2, HEIGHT // 2)
 CRAFT_RECT = pygame.Rect(0, 600, WIDTH // 2, HEIGHT - 600)
 GARDEN_RECT = pygame.Rect(WIDTH // 2, HEIGHT // 2, WIDTH // 2, HEIGHT // 2)
 
-FONT = pygame.font.SysFont("consolas", 24)
-BOOM_FONT = pygame.font.SysFont("consolas", 48)
-BIG_FONT = pygame.font.SysFont("consolas", 36)
+FONT = betterfont.Font(font="./pXld.ttf", font_size=18, color=(255,255,255), border_color=(0,0,0), border_thickness=3)
+BOOM_FONT = betterfont.Font(font="./pXld.ttf", font_size=36, color=(255,255,255), border_color=(0,0,0), border_thickness=3)
+BIG_FONT = betterfont.Font(font="./pXld.ttf", font_size=26, color=(255,255,255), border_color=(0,0,0), border_thickness=3)
+REGEN_BUTTON_FONT = betterfont.Font(font="./pXld.ttf", font_size=15, color=(0,0,0), border_color=(255,255,255), border_thickness=3)
 
 # Mine setup
 MINE_SIZE = 16
@@ -25,7 +26,7 @@ TINY = 2 # Tiny. I dont know what this was for, but making it 0 causes the tiles
 
 
 # Inventory
-inventory = {'rock': 5, 'quartzium': 2, 'dirt': 0}
+inventory = {}
 
 # Crafting
 craft_slots = [None, None]
@@ -90,7 +91,7 @@ def load_asset(path, fallback_color, size=(60, 60), text=None, suppress_warning=
         surf = pygame.Surface(size, pygame.SRCALPHA)
         surf.fill(fallback_color)
         if text:
-            label = FONT.render(text, True, (0,0,0))
+            label = FONT.render(text)
             surf.blit(label, (5, 5))
         return surf
 
@@ -128,7 +129,7 @@ def draw_mine():
     # Regen button
     btn_rect = pygame.Rect(MINE_RECT.x+9, MINE_RECT.y+7, 100, 30)
     pygame.draw.rect(screen, (180,180,0), btn_rect)
-    screen.blit(FONT.render("Regen", True, (0,0,0)), (btn_rect.x+10, btn_rect.y+5))
+    screen.blit(REGEN_BUTTON_FONT.render("Regen"), (btn_rect.x+10, btn_rect.y+5))
     return btn_rect
 
 numberwriter = betterfont.Font(surf=None, font="./pXld.ttf", font_size=20, color=(255,255,255), border_color=(0,0,0), border_thickness=4)
@@ -162,7 +163,7 @@ def draw_crafting():
     # Combine button
     btn_rect = pygame.Rect(CRAFT_RECT.x + 300, CRAFT_RECT.y + 90, 120, 50)
     pygame.draw.rect(screen, (255,255,0), btn_rect)
-    screen.blit(FONT.render("Combine", True, (0,0,0)), (btn_rect.x+10, btn_rect.y+10))
+    screen.blit(FONT.render("Combine"), (btn_rect.x+10, btn_rect.y+10))
     return slot_rects, btn_rect
 
 def draw_garden():
@@ -174,7 +175,8 @@ def draw_garden():
 def draw_booms():
     for boom in boom_texts:
         txt, pos, color = boom['txt'], boom['pos'], boom['color']
-        screen.blit(BOOM_FONT.render(txt, True, color), pos)
+        BOOM_FONT.color = color
+        screen.blit(BOOM_FONT.render(txt), pos)
 
 def update_booms():
     for boom in boom_texts:
@@ -317,16 +319,16 @@ while running:
                         rect = pygame.Rect(inv_x, inv_y, 60, 60)
                         if rect.collidepoint(mx, my):
                             info_lines = [
-                                f"Name: {mat.replace("_", " ").title()}",
-                                f"Amount: {count}",
+                                f"Name={mat.replace("_", " ").title()}",
+                                f"Amount={count}",
                             ]
                             if mat in strength:
-                                info_lines.append(f"Mining Strength: {strength[mat]}")
+                                info_lines.append(f"Mining Strength={strength[mat]}")
                             #pygame.draw.rect(screen, (0,0,0), (tooltip_left, tooltip_top, 200, 30 + 30*len(info_lines)), border_radius=5)
                             # calculate bounds
                             box_top = tooltip_top
                             box_left = tooltip_left
-                            box_width = max([FONT.size(line)[0] for line in info_lines]) + 20
+                            box_width = max([FONT.font.size(line)[0] for line in info_lines]) + 20
                             box_height = 20 + 30*len(info_lines)
                             # check collision with right edge of screen
                             go_left = 0
@@ -340,7 +342,7 @@ while running:
                             pygame.draw.rect(transparancybox, (0,0,0,200), (0, 0, box_width, box_height), border_radius=5)
                             screen.blit(transparancybox, (box_left, box_top))
                             for i, line in enumerate(info_lines):
-                                screen.blit(FONT.render(line, True, (255,255,255)), (tooltip_left + 10 + go_left, tooltip_top + i*30 + 10))
+                                screen.blit(FONT.render(line), (tooltip_left + 10 + go_left, tooltip_top + i*30 + 10))
                             break
                         inv_x += 80
 
