@@ -384,7 +384,10 @@ while running:
 
     window.blit(screen, (0,0))
 
+
+
     pygame.display.flip()
-    clock.tick(60)
+    t = clock.tick(60)
+    pygame.display.set_caption(f"i dont know yet - {int(clock.get_fps())} FPS")
 
 pygame.quit()
