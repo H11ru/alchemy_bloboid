@@ -61,7 +61,7 @@ def get_mine_cell(mx, my):
     x = (mx - MINE_RECT.x - TINY) // MINE_CELL_SIZE
     y = (my - MINE_RECT.y - TINY) // MINE_CELL_SIZE
     # throw away the top 3 tiles covered by the regen button
-    if x == 0 and y in (0,1,2):
+    if y == 0 and x in (0,1,2):
         return None, None
     if 0 <= x < MINE_SIZE and 0 <= y < MINE_SIZE:
         return x, y
