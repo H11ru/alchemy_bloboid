@@ -1,3 +1,53 @@
+# Alchemy Game Design (Pygame)
+
+## Overview
+A large window divided into four main interactive areas:
+- **Mine (Top Left)**
+- **Inventory (Top Right)**
+- **Crafting (Bottom Left)**
+- **Garden (Bottom Right)**
+
+---
+
+## Areas
+
+### 1. Mine (Top Left)
+- Gray window with a grid of tiles:
+  - Rock: gray square
+  - Quartzium: gray square with white horizontal stripes
+  - Other minerals: unique textures/colors
+- **Fog of war** mechanic: unexplored tiles are hidden.
+- **Regenerate** button in the top left resets the mine.
+
+### 2. Inventory (Top Right)
+- Displays all materials the player owns (with textures).
+- Shows a number below each item indicating quantity.
+- Items with a count of 0 are hidden.
+
+### 3. Crafting (Bottom Left)
+- Contains two slots for combining items.
+- Drag and drop minerals from inventory into slots:
+  - Number decrements immediately when dragging starts.
+  - If dropped outside a slot, the item returns to inventory.
+  - If dropped into a filled slot, items swap and the previous item returns to inventory.
+- **Combine** button (yellow):
+  - If a valid recipe exists, produces the result and empties slots.
+  - If not, spawns 15 "BOOM!" texts (random red/yellow/orange colors) that fly and disappear, and both items are lost.
+
+### 4. Garden (Bottom Right)
+- Plants grow here.
+- Clicking a plant removes it and adds resources to inventory.
+
+---
+
+## Notes
+- All UI elements should be visually distinct and clearly separated.
+- Drag-and-drop and feedback mechanics should be intuitive and responsive.
+
+
+
+
+## original
 lets make a alchemy game in pygame
 
 theres gonna be a huyge windwo with 4 parts:
